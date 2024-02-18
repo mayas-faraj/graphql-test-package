@@ -1,0 +1,5 @@
+# nodejs package
+node_modules
+
+# built file
+dist
