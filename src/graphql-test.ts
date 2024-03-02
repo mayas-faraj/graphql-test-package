@@ -86,7 +86,7 @@ const performGraphqlTest = async (
         // perform test
         test(`testing valid role: [${role !== undefined ? Role[role] : "none"}] for valid value index: ${validIndex}`, async () => {
           // add random for unique fields
-          const processedValue = contactRandomString(value, uniqueFields);
+          const processedValue = value !== undefined && uniqueFields !== undefined ? randomizeUniqueFileds(value, uniqueFields) : value;
 
           // get the result
           let response: unknown;
@@ -196,7 +196,7 @@ const performGraphqlTest = async (
         testValidRoles[0] !== undefined ? Role[testValidRoles[0]] : "none"
       }] for boundary value index: ${boundaryIndex}`, async () => {
         // add random for unique fields
-        const processedValue = contactRandomString(value, uniqueFields);
+        const processedValue = uniqueFields !== undefined ? randomizeUniqueFileds(value, uniqueFields) : value;
 
         const response: unknown = await getServerData(query, processedValue, normalToken);
         assert.ok(
@@ -259,19 +259,22 @@ const performGraphqlTest = async (
   });
 };
 
-const contactRandomString = (value?: object, uniqueFields?: string[]) => {
+export const randomizeUniqueFileds = (value: object, uniqueFields: string[]) => {
+  // randomize value
+  const getRandomizeValue = (value: unknown) => {
+    const random = Math.ceil(Math.random() * 10000);
+    return typeof value === "number" ? (value = parseInt(`${value}${random}`)) : `${value}-${random}`;
+  };
   // concat random string for unique fields for two levels
-  const processedValue = value !== undefined ? structuredClone(value) : undefined;
-  if (processedValue !== undefined && uniqueFields !== undefined)
-    uniqueFields.map((field) => {
-      const random = "-" + Math.ceil(Math.random() * 10000).toString();
-      const dotIndex = field.indexOf(".");
-      if (dotIndex >= 0) {
-        const field1 = field.substring(0, dotIndex);
-        const field2 = field.substring(dotIndex + 1);
-        if (field1 in processedValue && field2 in processedValue[field1]) processedValue[field1][field2] += random;
-      } else if (field in processedValue) processedValue[field] += random;
-    });
+  const processedValue = structuredClone(value);
+  uniqueFields.map((field) => {
+    const dotIndex = field.indexOf(".");
+    if (dotIndex >= 0) {
+      const field1 = field.substring(0, dotIndex);
+      const field2 = field.substring(dotIndex + 1);
+      if (field1 in processedValue && field2 in processedValue[field1]) processedValue[field1][field2] = getRandomizeValue(processedValue[field1][field2]);
+    } else if (field in processedValue) processedValue[field] = getRandomizeValue(processedValue[field]);
+  });
 
   return processedValue;
 };
