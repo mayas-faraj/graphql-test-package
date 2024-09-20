@@ -2,7 +2,6 @@ import { test, describe } from "node:test";
 import assert from "node:assert";
 import dotenv from "dotenv";
 import { Logger } from "winston";
-import { Role } from "@eurikatech/user";
 import { getServerData } from "./server-data.js";
 import generateToken from "./token-generator.js";
 
@@ -46,8 +45,8 @@ const performGraphqlTest = async (
   validValues?: object[],
   boundaryValues?: object[],
   invalidValues?: object[],
-  validRoles?: Role[],
-  invalidRoles?: Role[],
+  validRoles?: string[],
+  invalidRoles?: string[],
   note?: string,
   config?: {
     modelName: string;
@@ -55,7 +54,7 @@ const performGraphqlTest = async (
     logger?: Logger;
     logAllValidValuesResult?: boolean;
     skipUpdateNextValidValues?: boolean;
-    specificLogRoles?: Role[];
+    specificLogRoles?: string[];
     user?: {
       name: string;
       aud: string;
@@ -67,7 +66,7 @@ const performGraphqlTest = async (
   const testValidValues: (object | undefined)[] = validValues === undefined || validValues.length === 0 ? [undefined] : validValues;
   const testBoundaryValues = boundaryValues === undefined || boundaryValues.length === 0 ? [] : boundaryValues;
   const testInvalidValues = invalidValues === undefined || invalidValues.length === 0 ? [] : invalidValues;
-  const testValidRoles: (Role | undefined)[] = validRoles === undefined || validRoles.length === 0 ? [undefined] : validRoles;
+  const testValidRoles: (string | undefined)[] = validRoles === undefined || validRoles.length === 0 ? [undefined] : validRoles;
   const testInvalidRoles = invalidRoles === undefined || invalidRoles.length === 0 ? [] : invalidRoles;
 
   // check role for logger
@@ -84,7 +83,7 @@ const performGraphqlTest = async (
       // for each value
       testValidValues.map(async (value, validIndex) => {
         // perform test
-        test(`testing valid role: [${role !== undefined ? Role[role] : "none"}] for valid value index: ${validIndex}`, async () => {
+        test(`testing valid role: [${role !== undefined ? role : "none"}] for valid value index: ${validIndex}`, async () => {
           // add random for unique fields
           const processedValue = value !== undefined && uniqueFields !== undefined ? randomizeUniqueFileds(value, uniqueFields) : value;
 
@@ -113,19 +112,19 @@ const performGraphqlTest = async (
               if (validRoles === undefined || validRoles.length === 0) config?.logger?.info("This operation doesn't required authoriazation under any role.");
               else if (validRoles.length === 1)
                 config?.logger?.info(
-                  `Only the user under [${Role[validRoles[0]]}] role can ${OperationType[type].replace("_", " ").toLowerCase()} this model type.`
+                  `Only the user under [${validRoles[0]}] role can ${OperationType[type].replace("_", " ").toLowerCase()} this model type.`
                 );
               else {
                 config?.logger?.info(`These types of roles can ${OperationType[type].replace("_", " ").toLowerCase()} this model type:`);
                 config?.logger?.info("");
-                validRoles.map((role) => config?.logger?.info(`- ${Role[role].toLowerCase()}`));
+                validRoles.map((role) => config?.logger?.info(`- ${role}`));
                 config?.logger?.info("");
               }
 
               // log invalid roles
               if (invalidRoles !== undefined && invalidRoles.length > 0)
                 config?.logger?.info(
-                  `The user under other roles like [${invalidRoles.map((role) => Role[role]).join(", ")}] don't able to perform this operation.`
+                  `The user under other roles like [${invalidRoles.map((role) => role).join(", ")}] don't able to perform this operation.`
                 );
 
               // log unique fields
@@ -193,7 +192,7 @@ const performGraphqlTest = async (
     testBoundaryValues.map(async (value, boundaryIndex) => {
       // perform test
       test(`testing valid role: [${
-        testValidRoles[0] !== undefined ? Role[testValidRoles[0]] : "none"
+        testValidRoles[0] !== undefined ? testValidRoles[0] : "none"
       }] for boundary value index: ${boundaryIndex}`, async () => {
         // add random for unique fields
         const processedValue = uniqueFields !== undefined ? randomizeUniqueFileds(value, uniqueFields) : value;
@@ -212,7 +211,7 @@ const performGraphqlTest = async (
     // for each value
     testInvalidRoles.map(async (role, roleIndex) => {
       // perform test
-      test(`testing invalid role: [${role !== undefined ? Role[role] : "none"}] for valid value index: 0`, async () => {
+      test(`testing invalid role: [${role !== undefined ? role : "none"}] for valid value index: 0`, async () => {
         const response: unknown = await getServerData(query, testValidValues[0], generateToken(role, config?.user));
         assert.ok(typeof response === "object" && response !== null && response.hasOwnProperty("errors"), JSON.stringify(response, undefined, 2));
 
@@ -234,7 +233,7 @@ const performGraphqlTest = async (
     // for each value
     testInvalidValues.map(async (value, boundaryIndex) => {
       // perform test
-      test(`testing valid role: [${testValidRoles[0] !== undefined ? Role[testValidRoles[0]] : "none"}] for invalid value: ${boundaryIndex}`, async () => {
+      test(`testing valid role: [${testValidRoles[0] !== undefined ? testValidRoles[0] : "none"}] for invalid value: ${boundaryIndex}`, async () => {
         const response: unknown = await getServerData(query, value, normalToken);
         assert.ok(typeof response === "object" && response !== null && response.hasOwnProperty("errors"), JSON.stringify(response, undefined, 2));
 
