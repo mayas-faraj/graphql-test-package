@@ -1,6 +1,6 @@
 {
   "name": "@eurikatech/graphql-test",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "automation test for graphql endpoint, programmed by typescript and use jest library",
   "main": "./dist/index.js",
   "type": "module",
@@ -27,7 +27,6 @@
   },
   "homepage": "https://github.com/mayas-faraj/graphql-test#readme",
   "dependencies": {
-    "@eurikatech/user": "^1.0.2",
     "dotenv": "^16.4.4",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.2",
