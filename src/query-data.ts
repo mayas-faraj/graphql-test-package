@@ -17,7 +17,7 @@ const queryLastId = async (prismaClient: any, model: string): Promise<IdContaine
   return response.length >= 0 ? response[response.length - 1] : undefined;
 };
 
-const queryNexyId = async (prismaClient: any, databaseName: string, model: string): Promise<number> => {
+const queryNextId = async (prismaClient: any, databaseName: string, model: string): Promise<number> => {
   await prismaClient.$queryRaw<{ AUTO_INCREMENT: string }[]>`SET PERSIST information_schema_stats_expiry = 0;`;
   const result = await prismaClient.$queryRaw<
     { AUTO_INCREMENT: string }[]
@@ -25,4 +25,4 @@ const queryNexyId = async (prismaClient: any, databaseName: string, model: strin
   return parseInt(result[0].AUTO_INCREMENT);
 };
 
-export { queryFirstId, queryLastId, queryNexyId };
+export { queryFirstId, queryLastId, queryNextId };
